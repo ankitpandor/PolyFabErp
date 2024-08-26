@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            width: 100%;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #customers {
+            margin-top: 20px;
+        }
+        .customer {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .customer:last-child {
+            border-bottom: none;
+        }
+        .customer button {
+            background-color: #dc3545;
+            margin-top: 5px;
+        }
+        .customer button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Customer Management</h1>
+
+        <h3>Add Customer</h3>
+        <input type="text" id="name" placeholder="Name" />
+        <input type="text" id="address" placeholder="Address" />
+        <input type="text" id="gstin" placeholder="GSTIN" />
+        <input type="email" id="email" placeholder="Email" />
+        <input type="text" id="phone" placeholder="Phone" />
+        <button onclick="addCustomer()">Add Customer</button>
+
+        <h3>Customers</h3>
+        <div id="customers"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/customer';
+
+        async function addCustomer() {
+            const customer = {
+                name: document.getElementById('name').value,
+                address: document.getElementById('address').value,
+                gstin: document.getElementById('gstin').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value
+            };
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(customer)
+            });
+
+            if (response.ok) {
+                alert('Customer added successfully');
+                loadCustomers();
+            } else {
+                alert('Error adding customer');
+            }
+        }
+
+        async function loadCustomers() {
+            const response = await fetch(API_URL);
+            const customers = await response.json();
+
+            const customersDiv = document.getElementById('customers');
+            customersDiv.innerHTML = '';
+
+            customers.forEach(customer => {
+                const customerDiv = document.createElement('div');
+                customerDiv.className = 'customer';
+                customerDiv.innerHTML = `
+                    <strong>${customer.name}</strong><br/>
+                    ${customer.address}<br/>
+                    GSTIN: ${customer.gstin}<br/>
+                    Email: ${customer.email}<br/>
+                    Phone: ${customer.phone}<br/>
+                    <button onclick="removeCustomer('${customer.id}')">Remove</button>
+                `;
+                customersDiv.appendChild(customerDiv);
+            });
+        }
+
+        async function removeCustomer(id) {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Customer removed successfully');
+                loadCustomers();
+            } else {
+                alert('Error removing customer');
+            }
+        }
+
+        // Load customers on page load
+        loadCustomers();
+    </script>
+</body>
+</html>
